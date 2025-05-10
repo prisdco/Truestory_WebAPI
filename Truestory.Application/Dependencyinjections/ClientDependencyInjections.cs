@@ -20,6 +20,8 @@ using FluentValidation;
 using Truestory.Application.UseCase.Validations;
 using MediatR;
 using Truestory.Application.Extensions;
+using Truestory.Infrastructure.Interface;
+using Truestory.Infrastructure.Service;
 
 namespace Truestory.Application.Dependencyinjections
 {
@@ -32,7 +34,7 @@ namespace Truestory.Application.Dependencyinjections
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddMemoryCache();
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheBehavior<,>));
-
+            services.AddSingleton<IPolicyService, PolicyService>();
 
             services.AddControllers().AddNewtonsoftJson(options =>
             {

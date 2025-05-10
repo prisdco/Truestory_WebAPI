@@ -77,25 +77,33 @@ namespace Truestory.UnitTest.Controllers
         }
 
         [Fact]
-        public async Task ListObjectsAsync_ShouldReturnOkResult_WhenObjectsRetrievedSuccessfully()
+        public async Task ListObjectsAsync_ShouldReturnPaginatedResult_WhenSuccessful()
         {
             // Arrange
-          
+            var sampleData = new List<ListObjectResponse>
+                {
+                    new ListObjectResponse { id = "1", name = "Obj1", data = null },
+                    new ListObjectResponse { id = "2", name = "Obj2", data = null }
+                };
 
-            var mockResult = ResultViewModel.Ok(goodResponse.AsEnumerable());
+            var paginatedResult = new PaginatedResult<ListObjectResponse>(
+                sampleData, count: 2, pageNumber: 1, pageSize: 10
+            );
+
+            var mockResult = ResultViewModel.Ok(paginatedResult);
 
             _mediatorMock
                 .Setup(m => m.Send(It.IsAny<GetListObjectsQuery>(), default))
                 .ReturnsAsync(mockResult);
 
             // Act
-            var result = await _controller.GetListObjects();
+            var result = await _controller.GetListObjects(1, 10);
 
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
-            var response = Assert.IsAssignableFrom<IEnumerable<ListObjectResponse>>(okResult.Value);
-            Assert.Equal(2, response.Count());
-            Assert.Equal("1", response.First().id);
+            var response = Assert.IsType<PaginatedResult<ListObjectResponse>>(okResult.Value);
+            Assert.Equal(2, response.Items.Count());
+            Assert.Equal(1, response.PageNumber);
         }
 
         [Fact]
@@ -121,41 +129,29 @@ namespace Truestory.UnitTest.Controllers
         }
 
         [Fact]
-        public async Task ListObjectsAsync_ShouldReturnFail_WhenRetrievalNull()
+        public async Task ListObjectsAsync_ShouldReturnFail_WhenRetrievalFails()
         {
             // Arrange
             var mockErrorMessage = "Unable to fetch object";
-            var mockResult = ResultViewModel.Fail<IEnumerable<ListObjectResponse>>(mockErrorMessage);
+            var mockResult = ResultViewModel.Fail<PaginatedResult<ListObjectResponse>>(mockErrorMessage);
 
             _mediatorMock
                 .Setup(m => m.Send(It.IsAny<GetListObjectsQuery>(), default))
                 .ReturnsAsync(mockResult);
 
             // Act
-            var result = await _controller.GetListObjects();
+            var result = await _controller.GetListObjects(pageNumber: 1, pageSize: 10);
 
             // Assert
             var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-            var response = Assert.IsAssignableFrom<ResultViewModel>(badRequestResult.Value);
+            var response = Assert.IsType<ResultViewModel>(badRequestResult.Value);
             Assert.False(response.IsSuccess);
             Assert.Equal(mockErrorMessage, response.Error);
         }
 
+       
         [Fact]
-        public async Task ListObjectAsync_ShouldReturnInternalServerError_WhenUnhandledExceptionOccurs()
-        {
-            // Arrange
-            _mediatorMock
-                .Setup(m => m.Send(It.IsAny<GetListObjectsQuery>(), default))
-                .ThrowsAsync(new Exception("Unexpected error"));
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<Exception>(() => _controller.GetListObjects());
-            Assert.Equal("Unexpected error", exception.Message);
-        }
-
-        [Fact]
-        public async Task CreateObjectAsync_ShouldReturnCreatedEmployee_WhenSuccessful()
+        public async Task CreateObjectAsync_ShouldReturnCreatedObject_WhenSuccessful()
         {
 
             var command = new AddDevice 

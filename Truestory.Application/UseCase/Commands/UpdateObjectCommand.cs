@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Truestory.Domain.Models;
 using Truestory.Infrastructure.Contracts;
+using Truestory.Infrastructure.Interface;
+using Truestory.Infrastructure.Service;
 
 namespace Truestory.Application.UseCase.Commands
 {
@@ -26,13 +29,16 @@ namespace Truestory.Application.UseCase.Commands
         {
             private readonly ILogger<UpdateObjectCommandHandler> _logger;
             private readonly IApplicationClientFactory clientFactory;
-            private readonly IMapper mapper;
+            private readonly IMemoryCache _cache;
+            private readonly IPolicyService _policyService;
 
-            public UpdateObjectCommandHandler(ILogger<UpdateObjectCommandHandler> logger, IMapper mapper, IApplicationClientFactory clientFactory)
+            public UpdateObjectCommandHandler(ILogger<UpdateObjectCommandHandler> logger, IMemoryCache cache, 
+                IApplicationClientFactory clientFactory, IPolicyService policyService)
             {
                 _logger = logger;
                 this.clientFactory = clientFactory;
-                this.mapper = mapper;
+                this._cache = cache;
+                _policyService = policyService;
             }
 
             public async Task<ResultViewModel> Handle(UpdateObjectCommand request, CancellationToken cancellationToken)
@@ -40,10 +46,14 @@ namespace Truestory.Application.UseCase.Commands
                 _logger.LogInformation("Start Updating Object.");
 
                 try
-                {   
-                    var _Response = await clientFactory.UpdateObjects(request.Id, request.data);
+                {                     
+                    var _Response = await _policyService.ExecuteWithRetryAsync(() => clientFactory.UpdateObjects(request.Id, request.data));
                     if (_Response.name != string.Empty && _Response.name is not null)
+                    {
+                        _cache.Remove("ListObjects");
+                        _cache.Remove($"ListObjectsByIds:{request.Id}");
                         return ResultViewModel.Ok(_Response);
+                    }
                     else
                         return ResultViewModel.Fail("Object Data Failed To Update.");
                 }

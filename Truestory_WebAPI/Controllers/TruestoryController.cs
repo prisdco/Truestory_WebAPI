@@ -42,14 +42,20 @@ namespace Truestory_WebAPI.Controllers
         ///
         [AllowAnonymous]
         [HttpGet("listobjects")]
-        [ProducesResponseType(typeof(Result<IEnumerable<ListObjectResponse>>), 200)]
+        [ProducesResponseType(typeof(Result<PaginatedResult<ListObjectResponse>>), 200)]
         [ProducesResponseType(typeof(Result<string>), 400)]
         [ProducesResponseType(typeof(Result<string>), 500)]
 
-        public async Task<IActionResult> GetListObjects()
+        public async Task<IActionResult> GetListObjects([FromQuery] int? pageNumber, [FromQuery] int? pageSize)
         {
-            Logger.LogInformation($"Received request to retrieve all employees");
-            var response = await this.Mediator.Send(new GetListObjectsQuery());
+            Logger.LogInformation($"Received request to retrieve all objects");
+            int page = pageNumber ?? 1;
+            int size = pageSize ?? 10;
+            var response = await this.Mediator.Send(new GetListObjectsQuery
+            {
+                PageNumber = page,
+                PageSize = size
+            });
 
             if (!response.IsSuccess)
             {

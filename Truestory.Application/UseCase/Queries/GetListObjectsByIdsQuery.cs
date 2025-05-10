@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace Truestory.Application.UseCase.Queries
         {
             private readonly IApplicationClientFactory clientFactory;
             private readonly IHttpContextAccessor httpContextAccessor;
-            //private readonly IMapper _mapper;
+          
             public GetListObjectsByIdsQueryHandler(IApplicationClientFactory clientFactory)
             {
                 this.clientFactory = clientFactory;
@@ -33,8 +34,7 @@ namespace Truestory.Application.UseCase.Queries
             public async Task<Result<IEnumerable<ListObjectResponse>>> Handle(GetListObjectsByIdsQuery request, CancellationToken cancellationToken)
             {
                 var result = await clientFactory.ListObjectsByIds(request.Id);
-
-
+               
                 return ResultViewModel.Ok(result);
             }
         }

@@ -13,11 +13,13 @@ using Truestory.Infrastructure.Interface;
 
 namespace Truestory.Application.UseCase.Queries
 {
-    public class GetListObjectsQuery : IRequest<Result<IEnumerable<ListObjectResponse>>>, ICachableRequest
+    public class GetListObjectsQuery : IRequest<Result<PaginatedResult<ListObjectResponse>>>, ICachableRequest
     {
-        public string CacheKey => "ListObjects";
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public string CacheKey => $"ListObjects_Page_{PageNumber}_Size_{PageSize}";
         public TimeSpan? AbsoluteExpiration => TimeSpan.FromMinutes(5);
-        public class GetListObjectsQueryHandler : IRequestHandler<GetListObjectsQuery, Result<IEnumerable<ListObjectResponse>>>
+        public class GetListObjectsQueryHandler : IRequestHandler<GetListObjectsQuery, Result<PaginatedResult<ListObjectResponse>>>
         {
             private readonly IApplicationClientFactory clientFactory;
             private readonly IHttpContextAccessor httpContextAccessor;
@@ -28,11 +30,25 @@ namespace Truestory.Application.UseCase.Queries
                 //_mapper = mapper;
             }
 
-            public async Task<Result<IEnumerable<ListObjectResponse>>> Handle(GetListObjectsQuery request, CancellationToken cancellationToken)
+            public async Task<Result<PaginatedResult<ListObjectResponse>>> Handle(GetListObjectsQuery request, CancellationToken cancellationToken)
             {
                 var result = await clientFactory.ListObjects();
-                            
-                return ResultViewModel.Ok(result);
+
+                var totalCount = result.Count();
+
+                var pagedItems = result
+                    .Skip((request.PageNumber - 1) * request.PageSize)
+                    .Take(request.PageSize)
+                    .ToList();
+
+                var paginatedResult = new PaginatedResult<ListObjectResponse>(
+                    pagedItems,
+                    totalCount,
+                    request.PageNumber,
+                    request.PageSize
+                );
+
+                return ResultViewModel.Ok(paginatedResult);
             }
         }
     }
