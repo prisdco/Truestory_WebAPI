@@ -1,0 +1,25 @@
+﻿using FluentValidation;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Truestory.Domain.Models;
+
+namespace Truestory.Application.UseCase.Validations
+{
+
+    public class ObjectUpdateCommandValidators : AbstractValidator<UpdateDevice>
+    {
+
+        public ObjectUpdateCommandValidators()
+        {
+            //Validation for name
+            this.RuleFor(x => x.name).NotNull().NotEmpty().WithMessage("Please specify a name");
+
+            //Validation for data
+            this.RuleFor(x => x.data).NotNull().NotEmpty().WithMessage("Please specify property data");
+
+        }
+    }
+}
