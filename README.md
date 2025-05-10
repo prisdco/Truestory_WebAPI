@@ -25,3 +25,32 @@ Running this app is very easy if you are using visual studio 2022 or any other m
 This API comes with swagger, a documentation tool and testing of API endpoints. Every endpoints have a well documentation of what to expect from the request and how the response will be.
 
 
+
+# Written Task
+The following are the ways I will approach such a project:
+
+## Business requirement
+It is always very much important to understand the business requirement that brought about the codebase and logic. Understanding the business perspective will prepare you to know the why, how, when of the codebase.
+
+## Access the codebase
+I will go through the documentation of the codebase to understand the poor coding structure, logic flow, outdated libraries etc
+I will go through the codebase (Audit) to review the bottleneck, architecture, coding practices etc
+
+## Priority
+I will focus on modules/features that are very important to the business
+Deal with small compinents in this critical modules to avoid code break
+
+## Test
+For every changes there must be a test to prevent regression
+
+## Introduce modern framework and design principles
+We have SOLID princples, MVC to decouple the entire system and improve performance 
+We have .Net 8 that is highly efficient and can be introduce gradually
+
+## Agile, DevOps and CI/CD
+I will introduce agile methodogies for documentation, DevOps and CI/CD for easy of deployment, version control etc
+
+
+
+
+
